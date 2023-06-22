@@ -99,65 +99,43 @@ string Utils::charVecToHex(const char* data, size_t size)
     return charVecToHex((char*)data, size);
 }
 
+string Utils::getOnly(string source, string validChars)
+{
+    string ret = "";
+    for (auto &c: source)
+        if (validChars.find(c) != string::npos)
+            ret.push_back(c);
+
+    return ret;
+}
+
 string Utils::ssystem (string command, bool removeTheLastLF) {
-    //todo:change it to use popen (https://stackoverflow.com/questions/45202379/how-does-popen-work-and-how-to-implement-it-into-c-code-on-linux)
-    string tmpname = "/tmp/"+Utils::createUniqueId_customFormat("AAAAAAAAAA");
-    string tmpname2 = "/tmp/"+Utils::createUniqueId_customFormat("AAAAAAAAAA");
-    
-    std::string scommand = command;
-    //std::string cmd = scommand + " &>> " + tmpname;
-    std::string cmd = "#!/bin/bash\n"+scommand + " >\"" + tmpname + "\" 2>\""+tmpname + "\" &>>\""+tmpname + "\"\n";
 
-    Utils::writeTextFileContent(tmpname2 + ".sh", cmd);
-    auto pid = fork();
+    const int bufferSize = 128;
+    char buffer[bufferSize];
+    std::string output;
 
-    if (pid < 0)
-    {
-
-    }
-    else if (pid == 0)
-    {
-        execlp("chmod", "chmod", "+x", (string(tmpname2)+".sh").c_str(), NULL);
-
-        exit(0);
+    // Executar o comando e redirecionar stdout e stderr para o mesmo arquivo temporário
+    FILE* pipe = popen((command + " 2>&1").c_str(), "r");
+    if (pipe == nullptr) {
+        std::cerr << "Erro ao executar o comando." << std::endl;
+        return output;
     }
 
-    waitpid(pid, 0, 0);
-
-
-    pid = fork();
-
-    if (pid < 0)
-    {
-
-    }
-    else if (pid == 0)
-    {
-        execlp((string(tmpname2)+".sh").c_str(), (string(tmpname2)+".sh").c_str(), NULL);
-        exit(0);
+    // Ler a saída do subprocesso (stdout e stderr)
+    while (fgets(buffer, bufferSize, pipe) != nullptr) {
+        output += buffer;
     }
 
-    waitpid(pid, 0, 0);
+    // Fechar o subprocesso
+    pclose(pipe);
 
-
-
-    std::ifstream file(tmpname, std::ios::in | std::ios::binary );
-    std::string result;
-    if (file) {
-        while (!file.eof()) result.push_back(file.get())
-            ;
-        file.close();
+    // Remover a quebra de linha final, se necessário
+    if (removeTheLastLF && !output.empty() && output.back() == '\n') {
+        output.pop_back();
     }
-    remove(tmpname.c_str());
-    remove(tmpname2.c_str());
-    
-    //remove the last character, with is comming with invalid value
-    result = result.substr(0, result.size()-1);
 
-    if (removeTheLastLF)
-        result = result.substr(0, result.size()-1);
-
-    return result;
+    return output;
 }
 
 future<string> Utils::asystem(string command, bool removeTheLastLF)
@@ -291,6 +269,14 @@ string Utils::createUniqueId_customFormat(string format, string prefix, string s
     auto getAlpha = [chars](){ return chars[(rand() % (chars.size()-10))+10]; };
     auto getNum = [chars](){ return chars[rand() % 10]; };
     auto getHex = [chars](){ return chars[rand() % 16]; };
+    auto getAlphaRandUpper = [getAlpha, chars](){
+        if (((rand() % 2)+1) == 2)
+            return (char)toupper(getAlpha());
+        else
+            return getAlpha();
+
+    };
+
     
     for (size_t c = 0; c < format.size(); c++)
     {
@@ -304,6 +290,8 @@ string Utils::createUniqueId_customFormat(string format, string prefix, string s
             ret << (char)toupper(getHex());
         else if (format[c] == '0')
             ret << getNum();
+        else if (format[c] == '?')
+            ret << (vector<function<char()>>({ getAlphaRandUpper, getNum, getHex}))[rand() % 3]();
         else
             ret << format[c];
     }
@@ -383,6 +371,7 @@ void Utils::appendTextFileContent(string fileName, string content)
 
 void Utils::initializeProxyList()
 {
+    validProxies.clear();
     Utils::ssystem("curl -sS \"https://free-proxy-list.net/\" --output /tmp/proxyListHtml.html");
     string proxysHtml = Utils::readTextFileContent("/tmp/proxyListHtml.html");
 
@@ -420,6 +409,33 @@ void Utils::initializeProxyList()
     else
         cerr << "Error initing proxy list. Html parse error";
 }
+
+string Utils::pickRandomProxy(bool checkProxy)
+{
+    if (Utils::validProxies.size() == 0)
+        Utils::initializeProxyList();
+
+    while (Utils::validProxies.size() == 0)
+        usleep(10000);
+
+    string randomProxy = "";
+    while (true)
+    {
+        auto proxyIndex = rand() % Utils::validProxies.size();
+        randomProxy = Utils::validProxies[proxyIndex];
+        if (checkProxy)
+        {
+            string result = Utils::ssystem("curl -x "+randomProxy+" --connect-timeout 5 -sS \"https://www.google.com\" --output \"/tmp/proxyCheckResult\" > /dev/null 2>/dev/null");
+            if (result == "")
+                break;
+        }
+    }
+
+    return randomProxy;
+
+    
+}
+
 
 void Utils::checkAndAddProxies(vector<string> proxyesAndPorts)
 {
@@ -486,7 +502,7 @@ string Utils::downloadWithRandomProxy(string url, string destFileName, int maxTr
 
     while (maxTries > 0)
     {
-        randomProxy = Utils::validProxies[rand() % Utils::validProxies.size()];
+        randomProxy = Utils::pickRandomProxy();
 
         //Utils::ssystem("rm /tmp/curlError 2>/dev/null");
         string cmd = "curl -x "+randomProxy+" -sS \""+url+"\" --connect-timeout "+to_string(connectionTimeout)+" --output \""+destFileName+"\"";

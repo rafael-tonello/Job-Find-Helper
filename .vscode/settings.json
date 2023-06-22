@@ -64,7 +64,8 @@
         "streambuf": "cpp",
         "optional": "cpp",
         "ranges": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "set": "cpp"
     },
     "cmake.configureOnOpen": true
 }

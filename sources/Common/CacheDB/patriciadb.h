@@ -6,8 +6,10 @@
  
 class PatriciaDB: public ICacheDB { 
 private:
+    string validKeyChars = string("abcdefghijklmnopqrstuvxywz./:0123456789_-");
     string fileName;
     Trees::PatriciaFile<string> *db;
+    string ensureKeyChars(string key);
 public: 
     PatriciaDB(string fileName); 
     ~PatriciaDB(); 

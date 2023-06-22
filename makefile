@@ -3,7 +3,7 @@
 # My third makefile
  
 # Name of the project
-PROJ_NAME=NetEmpregosMonitor
+PROJ_NAME=netempmon
 
 
 CUSTOM_INCLUDE_PATH_TMP := $(shell find ./sources -type d)
