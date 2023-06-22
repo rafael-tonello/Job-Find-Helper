@@ -47,6 +47,7 @@ using namespace std;
         static string StringToHex(string& input);
         static string charVecToHex(char* data, size_t size);
         static string charVecToHex(const char* data, size_t size);
+        static string getOnly(string source, string validChars);
         static string ssystem (string, bool removeTheLastLF = true);
         static future<string> asystem(string, bool removeTheLastLF = true);
         static future<string> httpGet(string url, map<string, string> headers = {});
@@ -68,7 +69,7 @@ using namespace std;
         /**
          * @brief Create a Unique Id object using the specified format (aaaahhh000)
          * 
-         * @param format format of the new id. Use 'A' for a-z char, 'H' for hex(0-f) char and '0' to a number (0-9)
+         * @param format format of the new id. Use 'A' for a-z char, 'H' for hex (0-f) char, '0' to a number (0-9) or '?' to get any char (number or letter)
          * @param prefix a text to bet put in the start of the new id (in addition generated chars)
          * @param sufix a text to bet put in the end of the new id (in addition generated chars)
          * @return string 
@@ -79,6 +80,8 @@ using namespace std;
         static string readTextFileContent(string fileName);
         static void writeTextFileContent(string fileName, string content);
         static void appendTextFileContent(string fileName, string content);
+
+        
 
         // static string findAndReplaceAll(std::string data, std::string toSearch, std::string replaceStr);
 
@@ -97,6 +100,26 @@ using namespace std;
         static string getAName(void* p, NameType typeOfName = ALGORITHM_GENERATED, int AlgoGenMaxSyllables = 3);
 
         static string getNestedExceptionText(exception &e, string prefix ="", int level = 0);
+
+        template <typename S, typename T>
+        static vector<T> mapVector(vector<S> source, function<T(S)> f)
+        {
+            vector<T> ret;
+            ret.resize(source.size());
+            std::transform(source.begin(), source.end(), ret.begin(), f);
+            return ret;
+        }
+
+        template <typename T>
+        static vector<T> filterVector(vector<T> source, function<bool(T)> f)
+        {
+            vector<T> result;
+            std::copy_if(source.begin(), source.end(), std::back_inserter(result), f);
+            return result;
+        }
+
+        static string pickRandomProxy(bool checkProxy = false);
+
 
 
         template<typename T>

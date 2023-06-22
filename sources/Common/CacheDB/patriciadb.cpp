@@ -5,7 +5,7 @@ PatriciaDB::PatriciaDB(string fileName)
     this->fileName = fileName;
     this->db = new Trees::PatriciaFile<string>(
         fileName, 
-        string("abcdefghijklmnopqrstuvxywz./:0123456789_-"), 
+        validKeyChars, 
         128, 
         string(""), 
         [](string value, char* bufferOut, const int maxSize){
@@ -24,7 +24,21 @@ PatriciaDB::PatriciaDB(string fileName)
         },
         128
     );
-} 
+}
+
+string PatriciaDB::ensureKeyChars(string key)
+{
+    stringstream ret;
+    for (auto &c: key)
+    {
+        if (validKeyChars.find(c) != string::npos)
+            ret << c;
+        else //just replace by some other valid char to prevent empty keys and reduce colision possibility (caused by remotion of chars)
+            ret << validKeyChars[((int)c) % validKeyChars.size()];
+    }
+
+    return ret.str();
+}
  
 PatriciaDB::~PatriciaDB() 
 { 
@@ -32,10 +46,11 @@ PatriciaDB::~PatriciaDB()
 }
 
 DynamicVar PatriciaDB::get(string name, DynamicVar defaultValue){
-    return this->db->get(name, defaultValue.getString());
+    return this->db->get(ensureKeyChars(name), defaultValue.getString());
 }
 
 void PatriciaDB::set(string name, DynamicVar value){
+    name = ensureKeyChars(name);
     this->db->set(name, value);
 }
 
