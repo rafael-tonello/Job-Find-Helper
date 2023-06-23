@@ -425,10 +425,12 @@ string Utils::pickRandomProxy(bool checkProxy)
         randomProxy = Utils::validProxies[proxyIndex];
         if (checkProxy)
         {
-            string result = Utils::ssystem("curl -x "+randomProxy+" --connect-timeout 5 -sS \"https://www.google.com\" --output \"/tmp/proxyCheckResult\" > /dev/null 2>/dev/null");
+            string result = Utils::ssystem("curl -x "+randomProxy+" --connect-timeout 5 -sS \"https://www.google.com\" --output \"/tmp/proxyCheckResult\"");
             if (result == "")
                 break;
         }
+        else
+            break;
     }
 
     return randomProxy;
@@ -488,15 +490,7 @@ void Utils::checkAndAddProxies(vector<string> proxyesAndPorts)
 }
 
 string Utils::downloadWithRandomProxy(string url, string destFileName, int maxTries, int connectionTimeout)
-{
-    if (Utils::validProxies.size() == 0)
-        Utils::initializeProxyList();
-
-    while (Utils::validProxies.size() == 0)
-        usleep(10000);
-
-    
-    
+{     
     string result;
     string randomProxy;
 
