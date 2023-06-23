@@ -5,7 +5,7 @@ CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, vect
     this->log = log;
     this->searchUrls = searchUrls;
 
-    workTimer.init(5 Timer_minutes, [&](Timer& t){
+    workTimer.init(5 Timer_seconds, [&](Timer& t){
         this->work();
     }, false, true);
 }

@@ -122,7 +122,7 @@ string ITJobsService::downloadPage(string url)
                         string("--proxy-server=\"http://"+Utils::pickRandomProxy(true)+"\" ") +
                         string("'"+url+"' ");
 
-        //log.debug("running command "+cmd);
+        log.debug("Download page with google-chrome (running the command "+cmd+")");
         //((Logger*)(log.mainLogger))->flushCaches(); ;
 
         auto result = Utils::ssystem(cmd);
