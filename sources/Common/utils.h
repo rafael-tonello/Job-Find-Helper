@@ -17,10 +17,44 @@
 #include <timersForDebug.h>
 
 using namespace std;
+    /**
+     * @brief create a property and a function that both get and setts its value
+     * 
+     * @param TYPE is the type of the new property
+     * @param NAME is the name of the property. Property will be named as _NAME and the get/set function will be NAME
+     * * @param VALUE_FOR_NO_CHANGE a value that set function will user for detect if no changes is needed. Will be used as default value of the set/get function
+     * */
+    #define Utils_CreateGetSetProp(NAME, TYPE, VALUE_FOR_NO_CHANGE) protected: TYPE _##NAME; public: TYPE NAME(TYPE new_value = VALUE_FOR_NO_CHANGE){if (new_value != VALUE_FOR_NO_CHANGE) _##NAME = new_value; return _##NAME;}
+
+    /**
+     * @brief create a property and a function that both get and setts its value
+     * 
+     * @param TYPE is the type of the new property
+     * @param NAME is the name of the property. Property will be named as _NAME and the get/set function will be NAME
+     * * @param VALUE_FOR_NO_CHANGE a value that set function will user for detect if no changes is needed. Will be used as default value of the set/get function
+     * @param ADDITIONAL_IMPL an aditional implementation to be inserted imediatelly after the set block and before the return of the property value
+     * */
+    #define Utils_CreateGetSetProp2(NAME, TYPE, VALUE_FOR_NO_CHANGE, ADDITIONAL_IMPL) protected: TYPE _##NAME; public: TYPE NAME(TYPE new_value = VALUE_FOR_NO_CHANGE){if (new_value != VALUE_FOR_NO_CHANGE) _##NAME = new_value; ADDITIONAL_IMPL; return _##NAME;}
+    
+    /**
+     * @brief create a property and a function that both get and setts its value
+     * 
+     * @param TYPE is the type of the new property
+     * @param NAME is the name of the property. Property will be named as _NAME and the get/set function will be NAME
+     * @param VALUE_FOR_NO_CHANGE a value that set function will user for detect if no changes is needed. Will be used as default value of the set/get function
+     * @param ADDITIONAL_IMPL an aditional implementation to be inserted imediatelly after the set block and before the return of the property value
+     * @param ADDITIONAL_IMPL_ONLY_FOR_SET an aditional implementation to be inserted imediately before the property value setting process. You can use it to validate the value. The value will came in an argument named 'new_value' and you can use this session to change the 'new_value' before the property be changed.
+     * @ ADDITIONAL_IMPL_IMEDIATELY_BEFORE_RETURN and additional implementation to be inserted imediatelly before the return of the get/set function. An local variable named 'result' is returned, so you can use this block to change this variable before the return;
+     */
+    #define Utils_CreateGetSetProp3(NAME, TYPE, VALUE_FOR_NO_CHANGE, ADDITIONAL_IMPL, ADDITIONAL_IMPL_ONLY_FOR_SET, ADDITIONAL_IMPL_IMEDIATELY_BEFORE_RETURN) private: TYPE _##NAME; public: TYPE NAME(TYPE new_value = VALUE_FOR_NO_CHANGE){if (new_value != VALUE_FOR_NO_CHANGE) {ADDITIONAL_IMPL_ONLY_FOR_SET; _##NAME = new_value; }; ADDITIONAL_IMPL; auto result = _##NAME; ADDITIONAL_IMPL_IMEDIATELY_BEFORE_RETURN;  return result;}
+    
+    #define Utils_CreateReadOnly(NAME, TYPE) protected: TYPE _##NAME; public: TYPE NAME(){ return _##NAME;}
+    
     using named_lock_f = function<void()>;
     
     class Utils{
     private:
+        
     #ifdef D__TESTING__
     private: 
     #endif
@@ -47,6 +81,9 @@ using namespace std;
         static string StringToHex(string& input);
         static string charVecToHex(char* data, size_t size);
         static string charVecToHex(const char* data, size_t size);
+        static vector<string> splitString(string source, string split_by);
+        static string strToUpper(std::string source);
+        static string strToLower(std::string source);
         static string getOnly(string source, string validChars);
         static string ssystem (string, bool removeTheLastLF = true);
         static future<string> asystem(string, bool removeTheLastLF = true);
@@ -55,6 +92,7 @@ using namespace std;
         static void process_mem_usage(double& vm_usage, double& resident_set);
         static double process_vm_usage();
         static double process_resident_usage();
+
         /**
          * @brief Create a Unique Id object
          * 

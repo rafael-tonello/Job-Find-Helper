@@ -99,6 +99,50 @@ string Utils::charVecToHex(const char* data, size_t size)
     return charVecToHex((char*)data, size);
 }
 
+vector<string> Utils::splitString(string source, string split_by)
+{
+    vector<string> result;
+    
+    while (true)
+    {
+        if (auto pos = source.find(split_by); pos != string::npos)
+        {
+            result.push_back(source.substr(0, pos));
+            source = source.substr(pos + split_by.size());
+        }
+        else
+            break;
+    }
+
+    if (source != "")
+        result.push_back(source);
+
+    return result;
+}
+
+string Utils::strToUpper(std::string source)
+{
+    std::string result = source;
+
+    for (char& c : result) {
+        c = std::toupper(c);
+    }
+
+    return result;
+}
+
+string Utils::strToLower(std::string source)
+{
+    std::string result = source;
+
+    for (char& c : result) {
+        c = std::tolower(c);
+    }
+
+    return result;
+}
+
+
 string Utils::getOnly(string source, string validChars)
 {
     string ret = "";
