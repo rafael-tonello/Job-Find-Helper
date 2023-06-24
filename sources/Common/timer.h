@@ -14,6 +14,7 @@ using namespace std;
 #define Timer_milliseconds Timer_microseconds*1000
 #define Timer_seconds Timer_milliseconds*1000
 #define Timer_minutes Timer_seconds*60
+#define Timer_hours Timer_minutes*60
 
 #define TimerSleepInterval 100 Timer_microseconds
 

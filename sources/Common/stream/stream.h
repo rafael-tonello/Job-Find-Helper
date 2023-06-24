@@ -19,6 +19,8 @@ namespace Common{
         map<StreamObservingID, function<void(T data)>> listeners;
         mutex listenerMutex;
         T last;
+
+        vector<T> startupCache;
     public:
         /* this function add an obsever tot he Stream. This observer will receive all data that is added via 'add' function
          * @param observer an function to be called whena  new data arrives in the stream. This function is am lambda with the signature [](T data){ }
@@ -39,7 +41,7 @@ namespace Common{
         future<T> waitNext();
 
         /* Return the last received data */
-        T get();
+        T get(); 
 
         /* Stops observating the stream
          * @param the id of the observer, previusly returned by 'listen' function
@@ -58,6 +60,11 @@ StreamObservingID Common::Stream<T>::listen(function<void(T data)> observer)
     listenerMutex.lock();
     listeners[ret] = observer;
     listenerMutex.unlock();
+
+    for (size_t c = 0; c < startupCache.size(); c++)
+        observer(startupCache[c]);
+    startupCache.clear();
+
     return ret;
 }
 
@@ -66,8 +73,13 @@ void Common::Stream<T>::stream(T data)
 {
     last = data;
     listenerMutex.lock();
-    for (auto &curr : this->listeners)
-        curr.second(data);
+    if (this->listeners.size() > 0)
+    {
+        for (auto &curr : this->listeners)
+            curr.second(data);
+    }
+    else
+        startupCache.push_back(data);
 
     listenerMutex.unlock();
 }
