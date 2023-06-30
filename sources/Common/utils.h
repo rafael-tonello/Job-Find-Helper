@@ -64,12 +64,6 @@ using namespace std;
         static bool srandOk;
 
         static void runSRand();
-        static void initializeProxyList();
-        static void checkAndAddProxies(vector<string> proxyesAndPorts);
-
-
-        static vector <string> validProxies;
-        static char proxyListInitializedState;
     public:
         static void named_lock(string session_name, named_lock_f f, int timeout_ms = -1);
         static void named_lock_forceunlock(string session_name);
@@ -123,7 +117,6 @@ using namespace std;
 
         // static string findAndReplaceAll(std::string data, std::string toSearch, std::string replaceStr);
 
-        static string downloadWithRandomProxy(string url, string destFileName, int maxTries = 5, int connectionTimeout = 10);
 
         static string stringReplace(string source, string replace, string by);
         static string stringReplace(string source, vector<tuple<string, string>> replaceAndByTuples);
@@ -155,8 +148,6 @@ using namespace std;
             std::copy_if(source.begin(), source.end(), std::back_inserter(result), f);
             return result;
         }
-
-        static string pickRandomProxy(bool checkProxy = false);
 
 
 

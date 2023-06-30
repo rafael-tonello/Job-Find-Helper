@@ -1,9 +1,10 @@
 #include "ijobservice.h"
  
-CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, vector<string> searchUrls){
+CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, IProxyFinderService *proxyFinder, vector<string> searchUrls){
     this->db = db;
     this->log = log;
     this->searchUrls = searchUrls;
+    this->proxyFinder = proxyFinder;
 
     workTimer.init(5 Timer_seconds, [&](Timer& t){
         this->work();
@@ -138,11 +139,19 @@ std::string CommonJobServiceWrapper::unescapeHTML(const std::string& html) {
 string CommonJobServiceWrapper::downloadPage(string url)
 {
     string tmpName = "/tmp/netEmpregos"+Utils::createUniqueId_customFormat("?????-?????")+".html";
-    Utils::ssystem("rm "+tmpName+" 2>/dev/null");
-    //auto result = Utils::ssystem("curl -sS \""+this->url+"\" --connect-timeout 25 --output \"/tmp/netEmpregos.html\"");
+    auto proxy = proxyFinder->pickRandomProxy().get();
 
-    Utils::downloadWithRandomProxy(url, tmpName, 5, 5);
+    string command = Utils::stringReplace(
+        "curl -x \"{proxy}\" --connect-timeout 15 -sS \"{url}\" --output \"{output}\"",
+        {
+            {"{proxy}", proxy.toString()},
+            {"{url}", url},
+            {"{output}", tmpName}
+        }
+    );
+    string cmdResult = Utils::ssystem(command);
+
     string result =  Utils::readTextFileContent(tmpName);
-    Utils::ssystem("rm "+tmpName+" 2>/dev/null");
+    Utils::ssystem("rm "+tmpName+"");
     return result;
 }

@@ -1,8 +1,9 @@
 #include  "itjobsservice.h" 
  
-ITJobsService::ITJobsService(ICacheDB *db, ILogger *logger, vector<string> searchUrls): CommonJobServiceWrapper(
+ITJobsService::ITJobsService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls): CommonJobServiceWrapper(
     db,    
     logger->getNamedLogger("ItJobsService"),
+    proxyFinder,
     searchUrls
 ){
     log.info("Initing Itjobs.pt pulling service.");
@@ -119,7 +120,7 @@ string ITJobsService::downloadPage(string url)
                         string("--disable-gpu ") +
                         string("--user-agent=\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\" ") +
                         //string("--proxy-server=\"socks5://"+Utils::pickRandomProxy(true)+"\" ") +
-                        string("--proxy-server=\"http://"+Utils::pickRandomProxy(true)+"\" ") +
+                        string("--proxy-server=\"http://"+this->proxyFinder->pickRandomProxy().get().toString()+"\" ") +
                         string("'"+url+"' ");
 
         log.debug("Download page with google-chrome (running the command "+cmd+")");

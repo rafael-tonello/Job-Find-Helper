@@ -1,0 +1,6 @@
+https://openproxylist.xyz/
+
+https://openproxylist.xyz/socks4.txt
+https://openproxylist.xyz/socks5.txt
+https://openproxylist.xyz/http.txt
+https://openproxylist.xyz/all.txt

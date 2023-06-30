@@ -1,8 +1,9 @@
 #include  "netempregosservice.h" 
 
-NetEmpregosService::NetEmpregosService(ICacheDB *db, ILogger *logger, vector<string> searchUrls): CommonJobServiceWrapper(
+NetEmpregosService::NetEmpregosService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls): CommonJobServiceWrapper(
     db,    
     logger->getNamedLogger("NetEmpregosService"),
+    proxyFinder,
     searchUrls
 ){
     log.info("Initing Net-empregos.com pulling service.");

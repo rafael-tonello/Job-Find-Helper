@@ -25,7 +25,7 @@ protected:
 
     string downloadPage(string url) override;
 public: 
-    ITJobsService(ICacheDB *db, ILogger *logger, vector<string> searchUrls);
+    ITJobsService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls);
 }; 
  
 #endif 

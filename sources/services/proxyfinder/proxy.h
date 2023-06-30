@@ -33,7 +33,8 @@ namespace ProxyFinder{
             auto parts = Utils::splitString(protocol_host_port_string, ":");
             if (parts.size() == 3)
             {
-                this->protocol(Utils:: Utils::getOnly(parts[0], "SOCKSHTTPSsockshttps45"));
+                this->protocol(Utils::getOnly(parts[0], "SOCKSHTTPSsockshttps45"));
+                if (parts[1].size() > 2 && parts[1].find("//") == 0) parts[1] = parts[1].substr(2);
                 this->host(parts[1]);
                 this->port(stoi(Utils::getOnly(parts[2], "0123456789")));
             }

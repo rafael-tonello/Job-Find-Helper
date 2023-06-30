@@ -7,6 +7,7 @@
 #include <logger.h>
 #include <timer.h>
 #include <icachedb.h>
+#include <iproxyfinderservice.h>
  
 class IJobService { 
 public: 
@@ -29,13 +30,14 @@ protected:
     Timer workTimer;
     vector<string> searchUrls;
     int consecutiveNoJobsFoundCount = 0;
+    IProxyFinderService *proxyFinder;
 
 
     void work();
     Error processJob(Job currJob);
     string unescapeHTML(const string& html);
     virtual string downloadPage(string url);
-    CommonJobServiceWrapper(ICacheDB *db, NLogger log, vector<string> searchUrls);
+    CommonJobServiceWrapper(ICacheDB *db, NLogger log, IProxyFinderService *proxyFinder, vector<string> searchUrls);
     virtual tuple<Error, vector<Job>> findLastPublishedJobs();
     virtual tuple<Error, vector<Job> /*jobs*/> extractJobs(string html);
 

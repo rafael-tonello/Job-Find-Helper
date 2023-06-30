@@ -10,6 +10,9 @@
 #include <patriciadb.h>
 #include <argparser.h>
 #include <utils.h>
+#include <iproxyfinderservice.h>
+#include <proxyfinderservice.h>
+
 
 //semantic versioning
 string INFO_VERSION = "0.1.0";
@@ -27,6 +30,8 @@ private:
 
     ICacheDB *db = new PatriciaDB(getApplicationDirectory() + "/db");
     ILogger *logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, false);
+    IProxyFinderService *proxyFinderService = nullptr;
+
 public:
     App(){
     }
@@ -39,6 +44,9 @@ public:
         delete db;
         delete log;
         delete logger;
+
+        if (proxyFinderService != nullptr)
+            delete proxyFinderService;
     }
 
     int run(int argc, char** argv){
@@ -47,16 +55,17 @@ public:
 
         if (argParser.containsExact( {string("-h"), string("--help")} ))
             return displayHelp();
-
+ 
         parseUrls();
         parseCommands();
         this->logLevel = determineLogLevel(commands.size());
-        this->logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, false);
+        this->logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, true, true);
         this->log = logger->getNamedLoggerP("Main");
         
         
         this->db = new PatriciaDB(getApplicationDirectory() + "/db");
 
+        initProxyFinderService();
         initNetempregosService();
         initItjobsService();
 
@@ -64,10 +73,16 @@ public:
             usleep(1000);
         return 0;
     }
+
+    void initProxyFinderService()
+    {
+        this->proxyFinderService = new ProxyFinder::ProxyFinderService();
+    }
+
     void initNetempregosService()
     {
         auto validUrls = Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("net-empregos.com"); return pos > 7 && pos < 15; });
-        IJobService *ne_service = new NetEmpregosService(db, logger, validUrls);
+        IJobService *ne_service = new NetEmpregosService(db, logger, proxyFinderService, validUrls);
         ne_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
         ne_service->start();
 
@@ -77,7 +92,7 @@ public:
     void initItjobsService()
     {
         auto validUrls =Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("itjobs.pt"); return pos > 7 && pos < 15; });
-        IJobService *ij_service = new ITJobsService(db, logger, validUrls);
+        IJobService *ij_service = new ITJobsService(db, logger, proxyFinderService, validUrls);
         ij_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
         ij_service->start();
 

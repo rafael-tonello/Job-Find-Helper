@@ -7,12 +7,12 @@ mutex Timer::timersLocker;
  
 Timer::Timer(){};
 
-Timer::Timer(int interval, function<void(Timer& t)>f, bool firstShotImediately) 
+Timer::Timer(int64_t interval, function<void(Timer& t)>f, bool firstShotImediately) 
 {
     this->init(interval, f, firstShotImediately);
 }
 
-void Timer::init(int interval, function<void(Timer& t)>f, bool firstShotImediately, bool initStoped)
+void Timer::init(int64_t interval, function<void(Timer& t)>f, bool firstShotImediately, bool initStoped)
 {
     if (this->id <= 0)
         this->id = Timer::idCount++;
@@ -37,7 +37,9 @@ void Timer::start(bool firstShotImediately)
     timersLocker.lock();
     Timer::timers[this->id] = this;
     timersLocker.unlock();
-    this->timeCount = firstShotImediately ? 0 : interval;
+    this->currentTimeCountStart = Utils::getCurrentTimeMicroseconds();
+    if (firstShotImediately)
+        this->currentTimeCountStart -= this->interval;
     Timer::verifyTimersAndThread();
 }
  
@@ -64,12 +66,13 @@ void Timer::verifyTimersAndThread()
         thread th([&](){
             while (Timer::timers.size() > 0)
             {
+                int64_t currentTime = Utils::getCurrentTimeMicroseconds();
                 timersLocker.lock();
                 for (auto &c: Timer::timers)
                 {
-                    c.second->timeCount-=TimerSleepInterval;
-                    if (c.second->timeCount <= 0)
+                    if (currentTime - c.second->currentTimeCountStart >= c.second->interval)
                     {
+                        c.second->currentTimeCountStart = currentTime;
                         if (c.second->readyForNewCall)
                         {
                             c.second->readyForNewCall = false;
@@ -79,8 +82,6 @@ void Timer::verifyTimersAndThread()
                             }, c.second);
                             th2.detach();
                         }
-
-                        c.second->timeCount = c.second->interval;
                     }
                 }
                 timersLocker.unlock();
@@ -92,9 +93,9 @@ void Timer::verifyTimersAndThread()
     }
 }
 
-void Timer::changeInterval(int interval, bool resetTimecount)
+void Timer::changeInterval(int64_t interval, bool resetTimecount)
 {
     this->interval = interval;
     if (resetTimecount)
-        this->timeCount = interval;
+        this->currentTimeCountStart = Utils::getCurrentTimeMicroseconds();
 }

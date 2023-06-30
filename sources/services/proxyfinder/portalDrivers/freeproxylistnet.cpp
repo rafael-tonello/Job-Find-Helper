@@ -2,7 +2,7 @@
  
 ProxyFinder::FreeProxyListNet::FreeProxyListNet() 
 { 
-     this->tmr.init(1 Timer_hours, [&](Timer& tmrref){
+    this->tmr.init(5 Timer_minutes, [&](Timer& tmrref){
         
         string proxysHtml = Utils::ssystem("curl -sS \"https://free-proxy-list.net/\"");
 
@@ -21,7 +21,12 @@ ProxyFinder::FreeProxyListNet::FreeProxyListNet()
                         proxysHtml = proxysHtml.substr(cutPos+1);
 
                         if (currProxy.find("div") == string::npos)
+                        {
                             this->discoveredProxies.stream(Proxy("http://"+currProxy));
+                            this->discoveredProxies.stream(Proxy("https://"+currProxy));
+                            this->discoveredProxies.stream(Proxy("socks4://"+currProxy));
+                            this->discoveredProxies.stream(Proxy("socks5://"+currProxy));
+                        }
                         else
                             break;
                     }
