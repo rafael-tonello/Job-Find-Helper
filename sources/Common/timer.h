@@ -7,10 +7,11 @@
 #include <unistd.h>
 #include <atomic>
 #include <mutex>
+#include <utils.h>
 
 using namespace std;
 
-#define Timer_microseconds *1
+#define Timer_microseconds *(int64_t)(1)
 #define Timer_milliseconds Timer_microseconds*1000
 #define Timer_seconds Timer_milliseconds*1000
 #define Timer_minutes Timer_seconds*60
@@ -27,20 +28,20 @@ private:
 
     static void verifyTimersAndThread();
     int id = 0;
-    int timeCount;
-    int interval;
+    int64_t currentTimeCountStart = 0;
+    int64_t interval;
     atomic<bool> readyForNewCall;
 public:
     function<void(Timer& t)> f = [&](Timer& t){};
 
-    void init(int interval, function<void(Timer& t)>f, bool firstShotImediately = true, bool initStoped = false);
-    Timer(int interval, function<void(Timer& t)>f, bool firstShotImediately = true);
+    void init(int64_t interval, function<void(Timer& t)>f, bool firstShotImediately = true, bool initStoped = false);
+    Timer(int64_t interval, function<void(Timer& t)>f, bool firstShotImediately = true);
     Timer();
     ~Timer();
 
     void stop();
     void start(bool firstShotImediately = true);
-    void changeInterval(int interval, bool resetTimecount = false);
+    void changeInterval(int64_t interval, bool resetTimecount = false);
 
 };
  

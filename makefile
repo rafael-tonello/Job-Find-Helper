@@ -23,7 +23,7 @@ prebuild:
 # 	prepares the folder built/gui. This folder contains files copied from GUI/resources. These files contains the HTML5 User interface.
 	@ clear
 	@ mkdir ./build | true
-	@ cp -r ./sources/copyToBuildFolder/* ./build | true
+	@ cp -r ./sources/assets/* ./build | true
  
 # Object files
 OBJ=$(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
