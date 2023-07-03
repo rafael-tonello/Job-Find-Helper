@@ -6,7 +6,15 @@ CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, IPro
     this->searchUrls = searchUrls;
     this->proxyFinder = proxyFinder;
 
-    workTimer.init(5 Timer_seconds, [&](Timer& t){
+    //randomize timers interval to try prevent all services running at same time :D
+    // auto interval = 3 Timer_minutes;
+    // interval += rand() % (2 Timer_minutes);
+
+    auto interval = 5 Timer_minutes;
+    interval += rand() % (5 Timer_minutes);
+
+    this->log.info("Polling interval: " + to_string((double)((double)interval/1000.f/1000.f/60.f)) +" minutes");
+    workTimer.init(interval, [&](Timer& t){
         this->work();
     }, false, true);
 }
@@ -47,6 +55,8 @@ void CommonJobServiceWrapper::work()
     else
         log.error(error);
 
+    log.info2("Getting jobs done");
+
 }
 
 
@@ -82,7 +92,7 @@ tuple<Error, vector<Job> /*jobs*/> CommonJobServiceWrapper::extractJobs(string h
     Error error = Errors::NoError;
     while (true)
     {
-        auto [jobFound, remainHtml, jobHtml] = getNextJobHtml(html);
+        auto [jobFound, jobHtml, remainHtml] = getNextJobHtml(html);
 
         if (jobFound)
         {
@@ -154,4 +164,68 @@ string CommonJobServiceWrapper::downloadPage(string url)
     string result =  Utils::readTextFileContent(tmpName);
     Utils::ssystem("rm "+tmpName+"");
     return result;
+}
+
+tuple<Error/*error*/, string /*extracted data*/, string/*remain text*/> 
+CommonJobServiceWrapper::helper_extractCuttingString(string text, string begin, string end, bool remove_begin_from_result, bool remove_end_from_result)
+{
+    string remain = text;
+    if (auto posBeg = remain.find(begin); posBeg != string::npos)
+    {
+        remain = remain.substr(posBeg);
+        if (remove_begin_from_result)
+            remain = remain.substr(begin.size());
+
+        if (auto posEnd = remain.find(end); posEnd != string::npos)
+        {
+            string result = remain.substr(0, posEnd);
+            if (remove_end_from_result)
+                result = result.substr(0, result.size()-end.size()+1);
+            
+            remain = remain.substr(posEnd+end.size());
+
+            return {Errors::NoError, result, remain};
+        }
+        else
+            return { Errors::createError("end not found"), "", text};
+    }
+    else
+        return { Errors::createError("begin not found"), "", text};
+
+}
+
+string CommonJobServiceWrapper::helper_downloadUsingChrome(string url, function<bool(string html)> f_toValidadeDownloadedData, int maxTries)
+{
+    while (maxTries > 0)
+    {
+
+        string cmd =    string("google-chrome ") +
+                        string("--user-data-dir=/tmp/itjobpullingchromedata/ ") +
+                        string("--headless ") +
+                        string("--dump-dom ") +
+                        string("--virtual-time-budget=15000 ") +
+                        string("--timeout=15000 ") +
+                        string("--run-all-compositor-stages-before-draw ") +
+                        string("--disable-gpu ") +
+                        string("--user-agent=\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\" ") +
+                        //string("--proxy-server=\"socks5://"+Utils::pickRandomProxy(true)+"\" ") +
+                        string("--proxy-server=\""+this->proxyFinder->pickRandomProxy().get().toString()+"\" ") +
+                        string("'"+url+"' ");
+
+        log.debug("Download page with google-chrome (running the command "+cmd+")");
+        //((Logger*)(log.mainLogger))->flushCaches(); ;
+
+        //auto result = Utils::ssystem(cmd);
+        auto result = Utils::ssystem2(cmd, 30000);
+
+        if (result.find("\nCommand timeout") != string::npos)
+            log.error("google-chrome command timeout");
+        
+        if (f_toValidadeDownloadedData(result))
+            return result;
+        
+        maxTries--;
+    }
+
+    return "";
 }

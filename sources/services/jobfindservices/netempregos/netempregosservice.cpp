@@ -47,7 +47,7 @@ tuple<bool, string, string> NetEmpregosService::getNextJobHtml(string html)
             html = "";
         }
 
-        return {true, html, result};
+        return {true, result, html};
     }
     else 
         return {false, "", ""};
@@ -95,14 +95,14 @@ Job NetEmpregosService::extractJobFromHTML(string jobHtml)
                             jobHtml = jobHtml.substr(f6Pos + f6.size());
                             if (auto posLi = jobHtml.find("</li>"); posLi != string::npos)
                             {
-                                result.place = unescapeHTML(jobHtml.substr(0, posLi));
+                                result.location = unescapeHTML(jobHtml.substr(0, posLi));
                                 jobHtml = jobHtml.substr(posLi);
                             }
 
                             if (auto f7Pos = jobHtml.find(f7); f7Pos != string::npos)
                             {
                                 jobHtml = jobHtml.substr(f7Pos + f7.size());
-                                result.category = unescapeHTML(jobHtml.substr(0, jobHtml.find("</li>")));
+                                result.additionalInfo.add("category", unescapeHTML(jobHtml.substr(0, jobHtml.find("</li>"))));
                                 jobHtml = jobHtml.substr(jobHtml.find("</li>"));
                             }
                         }

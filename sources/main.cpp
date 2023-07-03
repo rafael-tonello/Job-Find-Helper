@@ -5,9 +5,10 @@
 #include <logger.h>
 #include <netempregosservice.h>
 #include <itjobsservice.h>
+#include <linkedinservice.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
-#include <patriciadb.h>
+#include <PrefixTreeDB.h>
 #include <argparser.h>
 #include <utils.h>
 #include <iproxyfinderservice.h>
@@ -15,7 +16,7 @@
 
 
 //semantic versioning
-string INFO_VERSION = "0.1.0";
+string INFO_VERSION = "0.2.0";
 
 using namespace std;
 class App{
@@ -28,9 +29,10 @@ private:
 
     vector<IJobService*> jobServices;
 
-    ICacheDB *db = new PatriciaDB(getApplicationDirectory() + "/db");
+    ICacheDB *db = new PrefixTreeDB(getApplicationDirectory() + "/db");
     ILogger *logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, false);
     IProxyFinderService *proxyFinderService = nullptr;
+    ProxyFinder::ProxyFinderService *proxyFinderService2;
 
 public:
     App(){
@@ -63,11 +65,12 @@ public:
         this->log = logger->getNamedLoggerP("Main");
         
         
-        this->db = new PatriciaDB(getApplicationDirectory() + "/db");
+        this->db = new PrefixTreeDB(getApplicationDirectory() + "/db");
 
         initProxyFinderService();
         initNetempregosService();
         initItjobsService();
+        initLinkedinService();
 
         while (true)
             usleep(1000);
@@ -77,6 +80,7 @@ public:
     void initProxyFinderService()
     {
         this->proxyFinderService = new ProxyFinder::ProxyFinderService();
+        this->proxyFinderService2 = (ProxyFinder::ProxyFinderService*)proxyFinderService;
     }
 
     void initNetempregosService()
@@ -99,11 +103,21 @@ public:
         this->jobServices.push_back(ij_service);
     }
 
+    void initLinkedinService()
+    {
+        auto validUrls =Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("linkedin.com"); return pos > 7 && pos < 15; });
+        IJobService *ij_service = new LinkedinService(db, logger, proxyFinderService, validUrls);
+        ij_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
+        ij_service->start();
+
+        this->jobServices.push_back(ij_service);
+    }
+
     void processReceivedJOB(Job job)
     {
         string msg =    string("New Job found on NetEmpregos.com: \n")+
                         string("    ") + job.title + string(" (by ")+ job.company+ string(")\n") + 
-                        string("    ") + string("place of job: ") + job.place + string("\n") + 
+                        string("    ") + string("place of job: ") + job.location + string("\n") + 
                         string("    ") + string("more info in: ") + job.url +string("\n");
 
         log->info(msg);
@@ -182,7 +196,7 @@ public:
             {"#url#", "$url"},
             {"#company#", "$company"},
             {"#logo#", "$logo"},
-            {"#place#", "$place"},
+            {"#location#", "$location"},
             {"#category#", "$category"},
         });
 
@@ -191,8 +205,8 @@ public:
                 string("url=\"")+job.url+string("\"; ")+
                 string("company=\"")+job.company+string("\"; ")+
                 string("logo=\"")+job.company_logo_url+string("\"; ")+
-                string("place=\"")+job.place+string("\"; ")+
-                string("category=\"")+job.category+string("\"; ")+
+                string("location=\"")+job.location+string("\"; ")+
+                string("category=\"")+job.additionalInfo["category"].getString()+string("\"; ")+
                 command;
 
         log->debug("running command: " + command);

@@ -12,12 +12,16 @@
             //"args": ["-c", "\"notify-send \\\"#title# (#company#)\\\"\""],
             //"args": ["-c", "\"./notifysend.sh \\\"#title# (#company#)\\\"\""],
             "args":[
-                "-c",  "\"./telegramsend.sh \\\"#title#\\\" \\\"#company#\\\" \\\"#place#\\\" \\\"#url#\\\" \\\"#logo#\\\"\"",
-                "-c",  "\"./notifysend.sh \\\"#title#\\\" \\\"#company#\\\" \\\"#place#\\\" \\\"#url#\\\" \\\"#logo#\\\"\"",
+                "-c",  "\"./telegramsend.sh \\\"#title#\\\" \\\"#company#\\\" \\\"#location#\\\" \\\"#url#\\\" \\\"#logo#\\\"\"",
+                //"-c",  "\"./notifysend.sh \\\"#title#\\\" \\\"#company#\\\" \\\"#location#\\\" \\\"#url#\\\" \\\"#logo#\\\"\"",
                 "-u",  "\"https://www.net-empregos.com/pesquisa-empregos.asp?chaves=programador&cidade=&categoria=0&zona=0&tipo=0\"",
                 "-u",  "\"https://www.net-empregos.com/pesquisa-empregos.asp?chaves=desenvolvedor&cidade=&categoria=0&zona=0&tipo=0\"",
                 "-u",  "\"https://www.net-empregos.com/pesquisa-empregos.asp?chaves=c%2B%2B&cidade=&categoria=0&zona=0&tipo=0\"",
                 "-u",  "\"https://www.net-empregos.com/pesquisa-empregos.asp?chaves=.net&cidade=&categoria=0&zona=0&tipo=\"",
+                "-u",  "\"https://www.linkedin.com/jobs/search/?currentJobId=3651841009&geoId=100364837&keywords=c%2B%2B&location=Portugal&refresh=true\"",
+                "-u",  "\"https://www.linkedin.com/jobs/search/?currentJobId=3612744837&geoId=100364837&keywords=node.js&location=Portugal&refresh=true\"",
+                "-u",  "\"https://www.linkedin.com/jobs/search/?currentJobId=3651841009&geoId=100364837&keywords=C%23%20&location=Portugal&refresh=true\"",
+                "-u",  "\"https://www.linkedin.com/jobs/search/?currentJobId=3645253255&geoId=100364837&keywords=golang&location=Portugal&refresh=true\""
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/build",

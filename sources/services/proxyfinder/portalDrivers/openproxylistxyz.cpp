@@ -22,8 +22,14 @@ void ProxyFinder::OpenProxyListXyz::downloadAndProcessList(string list, string p
 
     for (auto &currProxie: proxies)
     {
-        this->discoveredProxies.stream(proxysType + "://"+currProxie);
-        if (proxysType == "HTTP")
-            this->discoveredProxies.stream(proxysType + "s://"+currProxie);
+        try{
+            this->discoveredProxies.stream(proxysType + "://"+currProxie);
+            if (proxysType == "HTTP")
+                this->discoveredProxies.stream(proxysType + "s://"+currProxie);
+        }
+        catch(...)
+        {
+            cerr << "OpenProxyListXyz poxy find driver error: Error while streaming a discoverred proxy: " << proxysType << "://" << currProxie << endl;
+        }
     }
 }
