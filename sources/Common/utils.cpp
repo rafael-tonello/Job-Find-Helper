@@ -149,7 +149,7 @@ string Utils::getOnly(string source, string validChars)
     return ret;
 }
 
-string Utils::ssystem (string command, bool removeTheLastLF) {
+string Utils::ssystem(string command, bool removeTheLastLF) {
 
     const int bufferSize = 128;
     char buffer[bufferSize];
@@ -176,6 +176,177 @@ string Utils::ssystem (string command, bool removeTheLastLF) {
     }
 
     return output;
+}
+
+std::string Utils::ssystem2(string command, int timeout_milliseconds, bool removeTheLastLF) {
+    int stdoutPipe[2];  // Pipe para a saída padrão (stdout)
+    int stderrPipe[2];  // Pipe para a saída de erro (stderr)
+
+    if (pipe(stdoutPipe) == -1 || pipe(stderrPipe) == -1) {
+        std::cerr << "Erro ao criar pipes." << std::endl;
+        return "";
+    }
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        std::cerr << "Erro ao criar processo filho." << std::endl;
+        return "";
+    } else if (pid == 0) {
+        // Código do processo filho
+        close(stdoutPipe[0]);  // Fechar o descritor de leitura do pipe de stdout
+        close(stderrPipe[0]);  // Fechar o descritor de leitura do pipe de stderr
+
+        // Redirecionar stdout para o pipe de escrita
+        dup2(stdoutPipe[1], STDOUT_FILENO);
+        close(stdoutPipe[1]);
+
+        // Redirecionar stderr para o pipe de escrita
+        dup2(stderrPipe[1], STDERR_FILENO);
+        close(stderrPipe[1]);
+
+        // Executar o comando
+        execl("/bin/sh", "sh", "-c", command.c_str(), nullptr);
+        std::cerr << "Erro ao executar o comando." << std::endl;
+        _exit(1);
+    } else {
+        // Código do processo pai
+        close(stdoutPipe[1]);  // Fechar o descritor de escrita do pipe de stdout
+        close(stderrPipe[1]);  // Fechar o descritor de escrita do pipe de stderr
+
+        // Criar std::future para stdout e stderr
+        std::future<std::string> stdoutFuture = std::async(std::launch::async, [&stdoutPipe]() {
+            char buffer[128];
+            std::string stdoutOutput;
+            ssize_t bytesRead;
+
+            while ((bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0) {
+                stdoutOutput.append(buffer, bytesRead);
+            }
+
+            close(stdoutPipe[0]);  // Fechar o descritor de leitura do pipe de stdout
+
+            return stdoutOutput;
+        });
+
+        std::future<std::string> stderrFuture = std::async(std::launch::async, [&stderrPipe]() {
+            char buffer[128];
+            std::string stderrOutput;
+            ssize_t bytesRead;
+
+            while ((bytesRead = read(stderrPipe[0], buffer, sizeof(buffer))) > 0) {
+                stderrOutput.append(buffer, bytesRead);
+            }
+
+            close(stderrPipe[0]);  // Fechar o descritor de leitura do pipe de stderr
+
+            return stderrOutput;
+        });
+
+        // Definir o tempo limite usando std::future::wait_for()
+        std::chrono::milliseconds timeout(timeout_milliseconds);
+        auto startTime = std::chrono::steady_clock::now();
+        bool timeoutOccurred = false;
+
+        if (stdoutFuture.wait_for(timeout) == std::future_status::timeout ||
+            stderrFuture.wait_for(timeout) == std::future_status::timeout) {
+            // O tempo limite foi atingido
+            timeoutOccurred = true;
+            kill(pid, SIGTERM);  // Encerrar o processo filho
+        }
+
+        // Obter o resultado das saídas (stdout e stderr)
+        std::string stdoutResult = stdoutFuture.get();
+        std::string stderrResult = stderrFuture.get();
+
+        // Remover o último caractere de nova linha, se necessário
+        if (removeTheLastLF) {
+            if (!stdoutResult.empty() && stdoutResult.back() == '\n') {
+                stdoutResult.pop_back();
+            }
+            if (!stderrResult.empty() && stderrResult.back() == '\n') {
+                stderrResult.pop_back();
+            }
+        }
+
+        // Verificar se o tempo limite ocorreu
+        if (timeoutOccurred) {
+            //std::cerr << "Tempo limite excedido." << std::endl;
+            stderrResult += "\nCommand timeout.";
+            // Realizar ações adicionais em caso de tempo limite, se necessário
+        }
+
+        return stdoutResult + stderrResult;
+    }
+}
+
+Utils::ProcessOutput Utils::ssystem3(const std::string& command) {
+    int stdoutPipe[2];  // Pipe para a saída padrão (stdout)
+    int stderrPipe[2];  // Pipe para a saída de erro (stderr)
+
+    if (pipe(stdoutPipe) == -1 || pipe(stderrPipe) == -1) {
+        std::cerr << "Erro ao criar pipes." << std::endl;
+        return { -1, {}, {} };
+    }
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        std::cerr << "Erro ao criar processo filho." << std::endl;
+        return { -1, {}, {} };
+    } else if (pid == 0) {
+        // Código do processo filho
+        close(stdoutPipe[0]);  // Fechar o descritor de leitura do pipe de stdout
+        close(stderrPipe[0]);  // Fechar o descritor de leitura do pipe de stderr
+
+        // Redirecionar stdout para o pipe de escrita
+        dup2(stdoutPipe[1], STDOUT_FILENO);
+        close(stdoutPipe[1]);
+
+        // Redirecionar stderr para o pipe de escrita
+        dup2(stderrPipe[1], STDERR_FILENO);
+        close(stderrPipe[1]);
+
+        // Executar o comando
+        execl("/bin/sh", "sh", "-c", command.c_str(), nullptr);
+        std::cerr << "Erro ao executar o comando." << std::endl;
+        _exit(1);
+    } else {
+        // Código do processo pai
+        close(stdoutPipe[1]);  // Fechar o descritor de escrita do pipe de stdout
+        close(stderrPipe[1]);  // Fechar o descritor de escrita do pipe de stderr
+
+        // Criar std::future para stdout e stderr
+        std::future<std::string> stdoutFuture = std::async(std::launch::async, [&stdoutPipe]() {
+            char buffer[128];
+            std::string stdoutOutput;
+            ssize_t bytesRead;
+
+            while ((bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0) {
+                stdoutOutput.append(buffer, bytesRead);
+            }
+
+            close(stdoutPipe[0]);  // Fechar o descritor de leitura do pipe de stdout
+
+            return stdoutOutput;
+        });
+
+        std::future<std::string> stderrFuture = std::async(std::launch::async, [&stderrPipe]() {
+            char buffer[128];
+            std::string stderrOutput;
+            ssize_t bytesRead;
+
+            while ((bytesRead = read(stderrPipe[0], buffer, sizeof(buffer))) > 0) {
+                stderrOutput.append(buffer, bytesRead);
+            }
+
+            close(stderrPipe[0]);  // Fechar o descritor de leitura do pipe de stderr
+
+            return stderrOutput;
+        });
+
+        return { pid, std::move(stdoutFuture), std::move(stderrFuture) };
+    }
 }
 
 future<string> Utils::asystem(string command, bool removeTheLastLF)

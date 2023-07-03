@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
+#include <csignal>
 
 #include <timersForDebug.h>
 
@@ -80,6 +81,25 @@ using namespace std;
         static string strToLower(std::string source);
         static string getOnly(string source, string validChars);
         static string ssystem (string, bool removeTheLastLF = true);
+        static string ssystem2(string command, int timeout_milliseconds, bool removeTheLastLF = true);
+        struct ProcessOutput {
+            pid_t pid;
+            std::future<std::string> stdoutFuture;
+            std::future<std::string> stderrFuture;
+
+            std::string getAllOutput() {
+                std::string stdoutResult = stdoutFuture.get();
+                std::string stderrResult = stderrFuture.get();
+                return stdoutResult + stderrResult;
+            }
+
+            void killProcess() {
+                if (pid > 0) {
+                    kill(pid, SIGTERM);
+                }
+            }
+        };
+        static ProcessOutput ssystem3(const std::string& command);
         static future<string> asystem(string, bool removeTheLastLF = true);
         static future<string> httpGet(string url, map<string, string> headers = {});
         static future<string> httpPost(string url, string body, string contentType = "application/json", map<string, string> headers = {});

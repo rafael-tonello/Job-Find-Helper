@@ -6,17 +6,17 @@
 PROJ_NAME=netempmon
 
 
-CUSTOM_INCLUDE_PATH_TMP := $(shell find ./sources -type d)
+CUSTOM_INCLUDE_PATH_TMP := $(shell find ./sources ! -path '*/.git/*' -type d)
 # Add a prefix to INC_DIRS. So moduleA would become -ImoduleA. GCC understands this -I flag
 CUSTOM_INCLUDE_PATH := $(addprefix -I,$(CUSTOM_INCLUDE_PATH_TMP))
 
 
 
 # .c files
-C_SOURCE := $(shell find ./sources  ! -path '*/tests/*' -name '*.cpp' -or -name '*.c' -or -name '*.s')
+C_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.cpp' -or -name '*.c' -or -name '*.s')
 
 # .h files
-H_SOURCE := $(shell find ./sources  ! -path '*/tests/*' -name '*.hpp' -or -name '*.h' -or -name '*.inc')
+H_SOURCE := $(shell find ./sources  ! -path '*/.git/*' ! -path '*/tests/*' -name '*.hpp' -or -name '*.h' -or -name '*.inc')
 
 
 prebuild:
@@ -36,7 +36,7 @@ CC=clang++
 CC_FLAGS=-c			\
 		-pedantic  \
 		-pthread   \
-		-std=c++17 \
+		-std=c++20 \
 		-lssl      \
 		-lcrypto   \
 		$(CUSTOM_INCLUDE_PATH)
@@ -44,7 +44,7 @@ CC_FLAGS=-c			\
 
 LK_FLAGS=-pedantic  \
 		-pthread   \
-		-std=c++17 \
+		-std=c++20 \
 		-lssl      \
 		-lcrypto   \
 		$(CUSTOM_INCLUDE_PATH)
