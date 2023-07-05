@@ -87,6 +87,11 @@ Job LinkedinService::extractJobFromHTML(string jobHtml)
 future<Job> LinkedinService::loadJobDetails(Job jobWithoutDetails)
 {
     return std::async(std::launch::async, [&, jobWithoutDetails](){
+        log.debug("Loading aditional job details.");
+
+        //html = this->helper_downloadUsingChrome(jobWithoutDetails.url);
+
+
         return jobWithoutDetails;
     });
 }

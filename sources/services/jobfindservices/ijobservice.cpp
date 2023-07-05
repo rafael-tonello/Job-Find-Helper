@@ -17,6 +17,14 @@ CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, IPro
     workTimer.init(interval, [&](Timer& t){
         this->work();
     }, false, true);
+
+    //workaround to kill chormium browser (that freezes and do not return from command)
+
+    auto interval2 = 10 Timer_minutes;
+    chromiumKiller.init(interval2, [&](Timer& t){
+        //Utils::ssystem("kill $(pgrep -f \\\"--user-data-dir=/tmp/itjobpullingchromedata/\\\")");
+        Utils::ssystem("kill $(pgrep -f itjobpullingchromedata)");
+    });
 }
 
 Error CommonJobServiceWrapper::start()
@@ -55,7 +63,7 @@ void CommonJobServiceWrapper::work()
     else
         log.error(error);
 
-    log.info2("Getting jobs done");
+    log.info2("Done getting jobs");
 
 }
 
@@ -123,7 +131,7 @@ Error CommonJobServiceWrapper::processJob(Job currJob)
 {
     if (!db->get("jobs."+currJob.jobId+".processed", false).getBool())
     {
-        //currJob = loadJobDetails(currJob).get();
+        currJob = loadJobDetails(currJob).get();
 
         db->set("jobs."+currJob.jobId+".processed", true);
         jobsStream.stream(currJob);
@@ -199,7 +207,7 @@ string CommonJobServiceWrapper::helper_downloadUsingChrome(string url, function<
     while (maxTries > 0)
     {
 
-        string cmd =    string("google-chrome ") +
+        string cmd =    string("chromium-browser ") +
                         string("--user-data-dir=/tmp/itjobpullingchromedata/ ") +
                         string("--headless ") +
                         string("--dump-dom ") +
@@ -207,8 +215,7 @@ string CommonJobServiceWrapper::helper_downloadUsingChrome(string url, function<
                         string("--timeout=15000 ") +
                         string("--run-all-compositor-stages-before-draw ") +
                         string("--disable-gpu ") +
-                        string("--user-agent=\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\" ") +
-                        //string("--proxy-server=\"socks5://"+Utils::pickRandomProxy(true)+"\" ") +
+                        string("--user-agent=\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\" ") +                        //string("--proxy-server=\"socks5://"+Utils::pickRandomProxy(true)+"\" ") +
                         string("--proxy-server=\""+this->proxyFinder->pickRandomProxy().get().toString()+"\" ") +
                         string("'"+url+"' ");
 
