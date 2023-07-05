@@ -56,6 +56,8 @@ protected:
     tuple<Error, string, string> helper_extractCuttingString(string text, string begin, string end, bool remove_begin_from_result = true, bool remove_end_from_result = true);
     string helper_downloadUsingChrome(string url, function<bool(string html)> f_toValidadeDownloadedData, int maxTries = 5);
 
+    Timer chromiumKiller;
+
 protected: /* Interface for child classes*/
     /**
      * @brief Load aditional Job Details. Can be used to download and parse extra pages
