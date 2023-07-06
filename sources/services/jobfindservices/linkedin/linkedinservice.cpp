@@ -66,7 +66,9 @@ Job LinkedinService::extractJobFromHTML(string jobHtml)
     auto [error5, benefits, remain5] = helper_extractCuttingString(jobHtml, "<span class=\"result-benefits__text\">", "<!---->      </span>");
     if (error5 == Errors::NoError)
     {
-        result.additionalInfo.add("benefits", benefits);
+        benefits = StringUtils::trim(benefits);
+        if (benefits.size() > 2)
+            result.additionalInfo.add("benefits", benefits);
         jobHtml = remain5;
     }
 
@@ -86,11 +88,20 @@ Job LinkedinService::extractJobFromHTML(string jobHtml)
 
 future<Job> LinkedinService::loadJobDetails(Job jobWithoutDetails)
 {
-    return std::async(std::launch::async, [&, jobWithoutDetails](){
+    return std::async(std::launch::async, [&, &jobWithoutDetails](){
         log.debug("Loading aditional job details.");
 
-        //html = this->helper_downloadUsingChrome(jobWithoutDetails.url);
+        auto html = this->helper_downloadUsingChrome(jobWithoutDetails.url, [&](string html){
+            return html.find("<span class=\"posted-time-ago__text topcard__flavor--metadata\">") != string::npos;
+        });
 
+        auto [error, data, remain] = helper_extractCuttingString(html, "<span class=\"posted-time-ago__text topcard__flavor--metadata\">", "</span>");
+        if (error == Errors::NoError)
+            jobWithoutDetails.additionalInfo.add("postedTime", StringUtils::trim(data));
+
+        auto [error2, data2, remain2] = helper_extractCuttingString(html, "<span class=\"num-applicants__caption topcard__flavor--metadata topcard__flavor--bullet\">", "</span>");
+        if (error == Errors::NoError)
+            jobWithoutDetails.additionalInfo.add("applicants", Utils::getOnly(data2, "0123456789"));
 
         return jobWithoutDetails;
     });

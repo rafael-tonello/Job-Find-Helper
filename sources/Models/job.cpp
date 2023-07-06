@@ -42,3 +42,23 @@ DynamicVar JobAdditionalInfo::operator[] (string name)
 {
     return get(name, "");
 }
+
+vector<string> JobAdditionalInfo::getNames()
+{
+    vector<string> result;
+    for (auto &c: data)
+        result.push_back(std::get<0>(c));
+
+    return result;
+}
+
+vector<tuple<string, DynamicVar>>& JobAdditionalInfo::getRawData()
+{
+    return data;
+}
+    
+void JobAdditionalInfo::forEach(function<void(string name, DynamicVar value)> f)
+{
+    for (auto &c: data)
+        f(std::get<0>(c), std::get<1>(c));
+}

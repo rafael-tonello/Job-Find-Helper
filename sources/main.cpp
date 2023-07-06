@@ -8,7 +8,7 @@
 #include <linkedinservice.h>
 #include <LoggerConsoleWriter.h>
 #include <LoggerFileWriter.h>
-#include <PrefixTreeDB.h>
+#include <prefixtreedb.h>
 #include <argparser.h>
 #include <utils.h>
 #include <iproxyfinderservice.h>
@@ -167,6 +167,17 @@ public:
             tmpLogLevel = LOGGER_LOGLEVEL_INFO;
         }
 
+        if (auto ll = argParser.getList({"--log-level -ll"}); ll.size() > 0)
+        {
+            string text = Utils::strToUpper(ll[0]);
+            if (text == "DEBUG") tmpLogLevel = LOGGER_LOGLEVEL_DEBUG;
+            else if (text == "INFO2") tmpLogLevel = LOGGER_LOGLEVEL_INFO2;
+            else if (text == "INFO") tmpLogLevel = LOGGER_LOGLEVEL_INFO;
+            else if (text == "WARNING") tmpLogLevel = LOGGER_LOGLEVEL_WARNING;
+            else if (text == "ERROR") tmpLogLevel = LOGGER_LOGLEVEL_ERROR;
+            else if (text == "CRITICAL") tmpLogLevel = LOGGER_LOGLEVEL_CRITICAL;
+        }
+
         return tmpLogLevel;
     }
 
@@ -198,7 +209,14 @@ public:
             {"#logo#", "$logo"},
             {"#location#", "$location"},
             {"#category#", "$category"},
+            {"#json#", "$json"},
+            {"#jsonfile#", "$jsonfile"}
         });
+
+        auto json = job.serialize();
+        auto jsonNoFormat = job.serialize(false);
+        auto tmpJsonFile = "/tmp/" + Utils::createUniqueId_customFormat("?????") + ".json";
+        Utils::writeTextFileContent(tmpJsonFile, json);
 
         command = string("export LANG=C.UTF-8; ")+
                 string("title=\"")+job.title+string("\"; ")+
@@ -207,10 +225,14 @@ public:
                 string("logo=\"")+job.company_logo_url+string("\"; ")+
                 string("location=\"")+job.location+string("\"; ")+
                 string("category=\"")+job.additionalInfo["category"].getString()+string("\"; ")+
+                string("json=\"")+Utils::sr(jsonNoFormat, "\"", "\\\"")+string("\"; ")+
+                string("jsonfile=\"")+tmpJsonFile+string("\"; ")+
+
                 command;
 
         log->debug("running command: " + command);
         Utils::ssystem(command);
+        Utils::ssystem("rm "+tmpJsonFile);
     }
 
     int displayHelp()

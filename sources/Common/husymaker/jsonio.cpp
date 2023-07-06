@@ -401,6 +401,8 @@ string JsonIO::serializeNodeObject(TreeNode& node, bool format, bool enableComme
     int max = nodeChilds.size();
 
     result << "{";
+
+    int index = 0;
     for (auto &c: node.__getInsertOrder())
     {
         result << createIdentation(format, identLevel);
@@ -410,7 +412,15 @@ string JsonIO::serializeNodeObject(TreeNode& node, bool format, bool enableComme
             result << "\""+c+"\":" << (format? " " : "") ;
 
         if (nodeChilds[c].getValueType() != TreeNode::ValueType::COMMENT || enableCommentSupport)
+        {
             result << exportJson(nodeChilds[c], format, enableCommentSupport, identLevel+1);
+
+            if (index++ < max-1)
+            {
+                if (nodeChilds[c].getValueType() != TreeNode::ValueType::COMMENT)
+                    result << "," << (format? " " : "");
+            }
+        }
     }
     result << createIdentation(format, identLevel-1) << "}" ;
     return result.str();
