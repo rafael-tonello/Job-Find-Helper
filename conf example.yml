@@ -1,0 +1,45 @@
+configuration:
+    #the root direct is used as reference point to locate subdirectories where the app will writge and read files.
+    #inside this directory, the app will use the following structure to store and read things:
+    #   var/log/jobFinder.log -> to store sysem logs
+    #   var/data/jobFinder/db -> to store the database
+    #   opt/jobFinder/gui
+    #       or
+    #   user/local/share/jobFinder/gui -> to read the ui files
+    #Note: If you use '/' as a root directoty, the app will run integratged with the system
+    rootDirectory: ${bynaryLocation}
+
+    #available log levels: DEBUG2, DEBUG, INFO2, INFO, WARNING, ERROR, CRITICAL
+    debugLegel: INFO
+
+    #valid options: IGNORE_URLS_FROM_THIS_FILE, USE_ALL_AVAILABLE_URLS
+    whatDoIfUrlArePassedThroughtCommand: IGNORE_URLS_FROM_THIS_FILE
+
+    GUI:
+        server:
+            #if true, the ui server will always be enable. If false, the ui will be enable only when the app is running with UI
+            alwaysEnable: true
+
+            #use ${random,1000,65535} to use a random port from 1000 to 65535 or specify a valid port number
+            port: 5100
+            onlyAllowLocalhost: true
+    PullingServices:
+        net-empregos:
+            #defaultUrl: 
+                #-
+                #-
+            interval: 15 minutes
+            enabled: true
+        linkedin:
+            #defaultUrl:
+            interval: 9 minutes
+            enabled: true
+        itJobs:
+            #defaultUrl:
+            interval: 17 minutes
+            enabled: true
+
+
+urls:
+    - https://linkedin ...
+    - https://netempre

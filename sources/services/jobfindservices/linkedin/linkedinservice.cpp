@@ -107,6 +107,24 @@ future<Job> LinkedinService::loadJobDetails(Job jobWithoutDetails)
     });
 }
 
+string LinkedinService::removeTags(string data)
+{
+    data = Utils::stringReplace(data, { {"<br>", "\n"}, {"<br/>", "\n"}});
+    string result = "";
+    bool copying = true;
+    for (auto &c: data)
+    {
+        if (c == '<')
+            copying = false;
+        else if (c == '>')
+            copying = true;
+        else if (copying)
+            result += c;
+    }
+
+    return result;
+}
+
 string LinkedinService::downloadPage(string url){ 
     return this->helper_downloadUsingChrome(url, [](string dataToBeValidated)
     {

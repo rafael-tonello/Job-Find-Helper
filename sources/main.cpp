@@ -118,8 +118,17 @@ public:
         string msg =    string("New Job found on NetEmpregos.com: \n")+
                         string("    ") + job.title + string(" (by ")+ job.company+ string(")\n") + 
                         string("    ") + string("place of job: ") + job.location + string("\n") + 
-                        string("    ") + string("more info in: ") + job.url +string("\n");
-
+                        string("    ") + string("url: ") + job.url +string("\n");
+                        if (job.additionalInfo.size() > 0)
+                        {
+                            msg += string("    ") + string("more info: ") + job.url +string("\n");
+                            job.additionalInfo.forEach([&](auto key, auto value){
+                               msg += string("        ")  + key + ": " + value.getString() + string("\n");
+                            });
+                        }
+                        
+    
+    
         log->info(msg);
 
         thread th([&, job](){
@@ -260,6 +269,9 @@ public:
             string("                         #logo# -> is replaced by the url of the company logo\n")+
             string("                         #place# -> is replaced by the url of the place of job\n")+
             string("                         #category# -> is replaced by the url of the job category\n")+
+            string("                         #json# -> is replace by a JSON with all job data\n")+
+            string("                         #jsonfile# -> is replace for the address of a json file\n")+
+            string("                                       that contains all job data\n")+
             string("\n")+
             string("    --log-level      Specify the output log level of the app. You can use:")+
             string("                         debug: all messages will be displayed\n")+
