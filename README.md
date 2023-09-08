@@ -79,30 +79,6 @@ Bellow you can se the '--help' of the Job Finder Helper
                         log file ever will receive all outputs texts from the app.
 
 
-    Options for portal monitor services: 
-    --NetEmpregos_enabled   Enable or disable the support for Net-empregos.com
-                            portal. Options:
-                                yes: enable the NetEmpregos pulling service
-                                no: disable the NetEmpregos pulling service
-
-    --ItJobs_enabled        Enable or disable the support for ItJobs.pt portal.
-                            Options:
-                                yes: enable the ItJobs pulling service
-                                no: disable the ItJobs pulling service
-
-    --linkedin_enabled      Enable or disable the support for linkedin.
-                            Options:
-                                yes: enable the Linkedin pulling service
-                                no: disable the Linkedin pulling service
-
-    --Indeed_enabled        Enable or disable the support for Indeed.com
-                            portal. Options:
-                                yes: enable the Indeed pulling service
-                                no: disable the Indeed pulling service
-
-
-
-
     # Task lists
     ## general
         [ ] If urls are provided, run only services for these urls
