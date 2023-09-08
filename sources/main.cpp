@@ -16,7 +16,7 @@
 
 
 //semantic versioning
-string INFO_VERSION = "0.2.0";
+string INFO_VERSION = "0.3.0";
 
 using namespace std;
 class App{
