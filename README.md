@@ -29,16 +29,19 @@ Specifying jobs searchs on Linkeding and Net-empregos.com and calling a bash scr
     -u "\"https://www.linkedin.com/jobs/search/?currentJobId=3645253255&geoId=100364837&keywords=golang&location=Portugal&refresh=true\""
 
 ```
-    Lets take a look at some parts of the command above:
-        ./jobfindhelper
-            is the name of the executable.
 
-        -c "./notifysend.sh ...
-            the '-c' argument is used do specify a command to be runned when a jobs is found. The placeholders (words between ##) will be replace by the jobs information when the command is ready to be execute. The available place holds are described in the '--help ouput' section.
 
-        -u "https://www.net-empregos.com/pesquisa-empregos ...
+Lets take a look at some parts of the command above:
 
-            the '-u' argument is used to specify custom search urls. Using the domain name, the Job Finde Helper will try to find the correct driver to process the HTMLs of respective domain.
+#### ./jobfindhelper
+is the name of the executable.
+
+#### -c "./notifysend.sh ...    
+the '-c' argument is used do specify a command to be runned when a jobs is found. The placeholders (words between ##) will be replace by the jobs information when the command is ready to be execute. The available place holds are described in the '--help ouput' section.
+
+#### -u "https://www.net-empregos.com/pesquisa-empregos ...
+    
+the '-u' argument is used to specify custom search urls. Using the domain name, the Job Finde Helper will try to find the correct driver to process the HTMLs of respective domain.
 
 # --help output
 Bellow you can se the '--help' of the Job Finder Helper
@@ -79,22 +82,22 @@ Bellow you can se the '--help' of the Job Finder Helper
                         log file ever will receive all outputs texts from the app.
 
 
-    # Task lists
-    ## general
-        [ ] If urls are provided, run only services for these urls
-        [ ] Add DependecyInjectionManager class to the project
-        [ ] Load job details methods (job finder services)
+# Task lists
+## general
+    [ ] If urls are provided, run only services for these urls
+    [ ] Add DependecyInjectionManager class to the project
+    [ ] Load job details methods (job finder services)
 
-    ## Portals do add
-    ### Portugal:
-        [x] Net-empregos
-        [x] itjobs.pt
-        [ ] https://www.computerworld.com.pt/
-        [ ] https://netemprego.com/index.php?auth_sess=1eu62vbj312upmn3deoiukmomn&ref=c84e2a02577b50bed39467af9
+## Portals do add
+### Portugal:
+    [x] Net-empregos
+    [x] itjobs.pt
+    [ ] https://www.computerworld.com.pt/
+    [ ] https://netemprego.com/index.php?auth_sess=1eu62vbj312upmn3deoiukmomn&ref=c84e2a02577b50bed39467af9
 
-    ### Europe:
-        [ ] cvwarehouse.com/
+### Europe:
+    [ ] cvwarehouse.com/
 
-    ### Brazil:
-        [ ] https://vagas.byintera.com/
-        
+### Brazil:
+    [ ] https://vagas.byintera.com/
+    
