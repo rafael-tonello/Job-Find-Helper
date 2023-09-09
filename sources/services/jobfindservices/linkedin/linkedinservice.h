@@ -17,6 +17,7 @@ protected:
     future<Job> loadJobDetails(Job jobWithoutDetails) override;
     tuple<bool, string, string> getNextJobHtml(string html) override;
     Job extractJobFromHTML(string jobHtml) override;
+    string removeTags(string data);
 protected:
     string downloadPage(string url) override;
 public: 

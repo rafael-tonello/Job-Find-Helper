@@ -81,9 +81,10 @@ public:
         return get(name);
     }
 
-    TreeNode& operator[] (uint index)
+    TreeNode& operator[] (uint ArrayIndex)
     {
-        string index_s = to_string(index);
+        return get(to_string(ArrayIndex));
+        /*string index_s = to_string(index);
         if (this->childs.count(index_s))
             return childs[index_s];
 
@@ -96,7 +97,7 @@ public:
             curr++;
         }
 
-        return TreeNode::invalidNode;
+        return TreeNode::invalidNode;*/
     }
     
     /*operator string(){
@@ -173,6 +174,12 @@ public:
     TreeNode& operator=(const char* _value)
     {
         this->value = string(_value);
+        return *this;
+    }
+
+    TreeNode& operator=(DynamicVar _value)
+    {
+        this->value = _value;
         return *this;
     }
 };

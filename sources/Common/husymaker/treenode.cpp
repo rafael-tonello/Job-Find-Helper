@@ -79,7 +79,10 @@ TreeNode &TreeNode::get(string objectAddress)
     objectAddress = Utils::stringReplace(objectAddress, 
         {
             {"]", ""},
-            {"[]", "."}
+            {"[", "."},
+            {"::", "."},
+            {":", "."},
+            {"->", "."}
         }
     );
 

@@ -35,6 +35,13 @@ public:
         return this->args.size();
     }
 
+    /**
+     * @brief returns the arg value using an index
+     * 
+     * @param index the index of argument
+     * @param defaultValue a value to be returned if the index is out of range
+     * @return string 
+     */
     string get(int index, string defaultValue = "")
     {
         _lastError = "";
@@ -45,6 +52,13 @@ public:
         return defaultValue;
     }
 
+    /**
+     * @brief returns an arg bvalue looking for its name
+     * 
+     * @param argPrefix the argument name
+     * @param defaultValue a value to be returned if the argument is not found
+     * @return string 
+     */
     string get(string argPrefix, string defaultValue = "")
     {
         _lastError = "";
@@ -57,8 +71,17 @@ public:
         return defaultValue;
     }
 
+
+    /**
+     * @brief Searchs by a list of arguments and returns their values. Among other uses, you can use it to find argumetns that can be passed with more than only one name
+     * 
+     * @param validArgPrefixes the list of prefixes to search
+     * @return vector<string> 
+     */
     vector<string> getList(vector<string> validArgPrefixes)
     {
+
+
         auto matchAnyPrefix = [&](string text){
             for (auto c: validArgPrefixes)
                 if (c.find(text) == 0)
@@ -112,6 +135,13 @@ public:
         return false;
     }
 
+    /**
+     * @brief checks if at least one of the passed arguments is present in the command line
+     * 
+     * @param anyOfTheseArgs the argument list
+     * @return true 
+     * @return false 
+     */
     bool contains(vector<string> anyOfTheseArgs)
     {
         for (auto &c: anyOfTheseArgs)
@@ -120,6 +150,7 @@ public:
         return false;
     }
 
+    
     bool containsExact(string arg)
     {
         for (int i = 0; i < this->args.size(); i++)
