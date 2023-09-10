@@ -93,7 +93,7 @@ Bellow you can se the '--help' of the Job Finder Helper
     [x] Net-empregos
     [x] itjobs.pt
     [ ] https://www.computerworld.com.pt/
-    [ ] https://netemprego.com/index.php?auth_sess=1eu62vbj312upmn3deoiukmomn&ref=c84e2a02577b50bed39467af9
+    [ ] https://netemprego.com
 
 ### Europe:
     [ ] cvwarehouse.com/
