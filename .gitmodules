@@ -1,0 +1,3 @@
+[submodule "sources/Common/DependencyInjection"]
+	path = sources/Common/DependencyInjection
+	url = https://github.com/rafael-tonello/DependencyInjection.git
