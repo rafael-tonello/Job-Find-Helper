@@ -16,7 +16,7 @@
 #include <dependencyInjectionManager.h>
 
 //semantic versioning
-string INFO_VERSION = "0.4.0";
+string INFO_VERSION = "0.4.1";
 
 using namespace std;
 class App{
@@ -52,7 +52,6 @@ public:
         if (argParser.containsExact( {string("-h"), string("--help")} ))
             return displayHelp();
         parseCommands();
-        
 
         this->logLevel = determineLogLevel(commands.size());
         
