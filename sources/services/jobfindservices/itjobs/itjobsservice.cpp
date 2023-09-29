@@ -1,9 +1,7 @@
 #include  "itjobsservice.h" 
  
-ITJobsService::ITJobsService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls): CommonJobServiceWrapper(
-    db,    
-    logger->getNamedLogger("ItJobsService"),
-    proxyFinder,
+ITJobsService::ITJobsService(vector<string> searchUrls): CommonJobServiceWrapper(
+    "ItJobsService",
     searchUrls
 ){
     log.info("Initing Itjobs.pt pulling service.");

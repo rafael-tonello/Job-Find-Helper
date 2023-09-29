@@ -1,9 +1,7 @@
 #include  "linkedinservice.h" 
  
-LinkedinService::LinkedinService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls): CommonJobServiceWrapper(
-    db,    
-    logger->getNamedLogger("LinkedinService"),
-    proxyFinder,
+LinkedinService::LinkedinService(vector<string> searchUrls): CommonJobServiceWrapper(
+    "LinkedinService",
     searchUrls
 ){
     log.info("Initing Linkedin.com pulling service.");

@@ -13,7 +13,7 @@
 #include <utils.h>
 #include <iproxyfinderservice.h>
 #include <proxyfinderservice.h>
-
+#include <dependencyInjectionManager.h>
 
 //semantic versioning
 string INFO_VERSION = "0.4.0";
@@ -29,13 +29,9 @@ private:
 
     vector<IJobService*> jobServices;
 
-    ICacheDB *db = new PrefixTreeDB(getApplicationDirectory() + "/db");
-    ILogger *logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, false);
-    IProxyFinderService *proxyFinderService = nullptr;
-    ProxyFinder::ProxyFinderService *proxyFinderService2;
-
 public:
     App(){
+        
     }
 
     ~App()
@@ -43,29 +39,32 @@ public:
         for (auto &c: jobServices)
             delete c;
 
-        delete db;
         delete log;
-        delete logger;
-
-        if (proxyFinderService != nullptr)
-            delete proxyFinderService;
+        delete DIM::defaultInstance().get<ICacheDB>();
+        delete DIM::defaultInstance().get<ILogger>();
+        delete DIM::defaultInstance().get<IProxyFinderService>();
     }
 
     int run(int argc, char** argv){
+        
         cout << "Net-Empregos monitor and trigger, version " << INFO_VERSION << endl;
         argParser = ArgParser(argc, argv);
-
         if (argParser.containsExact( {string("-h"), string("--help")} ))
             return displayHelp();
- 
-        parseUrls();
         parseCommands();
+        
+
         this->logLevel = determineLogLevel(commands.size());
-        this->logger = new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, true, true);
-        this->log = logger->getNamedLoggerP("Main");
         
+        DIM::defaultInstance().addSingleton<ArgParser>(&argParser);
+        DIM::defaultInstance().addSingleton<ILogger>(new Logger({new LoggerConsoleWriter(logLevel), new LoggerFileWriter(determinteLogFile())}, true, true));
+        DIM::defaultInstance().addSingleton<ICacheDB>(new PrefixTreeDB(getApplicationDirectory() + "/db"));
+
+ 
         
-        this->db = new PrefixTreeDB(getApplicationDirectory() + "/db");
+        this->log = DIM::defaultInstance().get<ILogger>()->getNamedLoggerP("Main");
+
+        parseUrls();
 
         initProxyFinderService();
         initNetempregosService();
@@ -79,14 +78,13 @@ public:
 
     void initProxyFinderService()
     {
-        this->proxyFinderService = new ProxyFinder::ProxyFinderService();
-        this->proxyFinderService2 = (ProxyFinder::ProxyFinderService*)proxyFinderService;
+        DIM::defaultInstance().addSingleton<IProxyFinderService>(new ProxyFinder::ProxyFinderService());
     }
 
     void initNetempregosService()
     {
         auto validUrls = Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("net-empregos.com"); return pos > 7 && pos < 15; });
-        IJobService *ne_service = new NetEmpregosService(db, logger, proxyFinderService, validUrls);
+        IJobService *ne_service = new NetEmpregosService(validUrls);
         ne_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
         ne_service->start();
 
@@ -96,7 +94,7 @@ public:
     void initItjobsService()
     {
         auto validUrls =Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("itjobs.pt"); return pos > 7 && pos < 15; });
-        IJobService *ij_service = new ITJobsService(db, logger, proxyFinderService, validUrls);
+        IJobService *ij_service = new ITJobsService(validUrls);
         ij_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
         ij_service->start();
 
@@ -106,7 +104,7 @@ public:
     void initLinkedinService()
     {
         auto validUrls =Utils::filterVector<string>(this->urls, [](string item) { auto pos = item.find("linkedin.com"); return pos > 7 && pos < 15; });
-        IJobService *ij_service = new LinkedinService(db, logger, proxyFinderService, validUrls);
+        IJobService *ij_service = new LinkedinService(validUrls);
         ij_service->jobsStream.subscribe([&](Job foundJob){ this->processReceivedJOB(foundJob); });
         ij_service->start();
 
@@ -170,13 +168,8 @@ public:
         int tmpLogLevel = LOGGER_LOGLEVEL_DEBUG2;
         //if user do not specify any command, sets the log level (of the console) to 'info',
         //to mkeep stdout clean to user be able to focus in the jobs informations
-        if (totalOfCommands == 0)
-        {
-            cout << endl << "As you do not specify any command to be triggered, this app will suply some output messages to try to maintain the terminal clean and you can focus in the jobs oportunities." << endl;
-            tmpLogLevel = LOGGER_LOGLEVEL_INFO;
-        }
-
-        if (auto ll = argParser.getList({"--log-level -ll"}); ll.size() > 0)
+        
+        if (auto ll = argParser.getList({"--log-level", "-ll"}); ll.size() > 0)
         {
             string text = Utils::strToUpper(ll[0]);
             if (text == "DEBUG") tmpLogLevel = LOGGER_LOGLEVEL_DEBUG;
@@ -185,6 +178,14 @@ public:
             else if (text == "WARNING") tmpLogLevel = LOGGER_LOGLEVEL_WARNING;
             else if (text == "ERROR") tmpLogLevel = LOGGER_LOGLEVEL_ERROR;
             else if (text == "CRITICAL") tmpLogLevel = LOGGER_LOGLEVEL_CRITICAL;
+            
+            cout << "logLevel was forced to " + text + " via command line " << endl;
+        }
+
+        if (totalOfCommands == 0 && tmpLogLevel == LOGGER_LOGLEVEL_DEBUG2)
+        {
+            cout << endl << "As you do not specify any command to be triggered, this app will suply some output messages to try to maintain the terminal clean and you can focus in the jobs oportunities." << endl;
+            tmpLogLevel = LOGGER_LOGLEVEL_INFO;
         }
 
         return tmpLogLevel;

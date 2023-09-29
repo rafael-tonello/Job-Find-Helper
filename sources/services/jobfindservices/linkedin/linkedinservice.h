@@ -7,6 +7,7 @@
 #include <job.h>
 #include <ijobservice.h>
 #include <StringUtils.h>
+#include <dependencyInjectionManager.h>
  
 using namespace std;
 class LinkedinService: public CommonJobServiceWrapper { 
@@ -21,7 +22,7 @@ protected:
 protected:
     string downloadPage(string url) override;
 public: 
-    LinkedinService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls); 
+    LinkedinService(vector<string> searchUrls); 
     ~LinkedinService(); 
 }; 
  

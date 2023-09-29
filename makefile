@@ -26,8 +26,7 @@ prebuild:
 	@ cp -r ./sources/assets/* ./build | true
  
 # Object files
-OBJ=$(subst .cpp,.o,$(subst ./sources,./objects,$(C_SOURCE)))
- 
+OBJ=$(subst .cpp,.o,$(subst ./sources,./build/objects,$(C_SOURCE)))
 # Compiler and linker
 #CC=g++
 CC=clang++
@@ -72,20 +71,20 @@ $(PROJ_NAME): $(OBJ)
 	@ echo 'Finished building binary: $@'
 	@ echo ' '
  
-./objects/%.o: ./sources/%.cpp ./sources/%.h
+./build/objects/%.o: ./sources/%.cpp ./sources/%.h
 	@ echo 'Building target using GCC compiler: $<'
 	mkdir -p $(dir $@)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
  
-./objects/main.o: ./sources/main.cpp $(H_SOURCE)
+./build/objects/main.o: ./sources/main.cpp $(H_SOURCE)
 	@ echo 'Building target using GCC compiler: $<'
 	mkdir -p $(dir $@)
 	$(CC) $< $(CC_FLAGS) -o $@
 	@ echo ' '
 	
 clean:
-	@ $(RM) ./objects/*.o $(PROJ_NAME) *~
-	@ rm -rf objects
+	@ $(RM) ./build/objects/*.o $(PROJ_NAME) *~
+	@ rm -rf ./build/objects
  
 .PHONY: all clean

@@ -8,6 +8,7 @@
 #include <timer.h>
 #include <icachedb.h>
 #include <iproxyfinderservice.h>
+#include <dependencyInjectionManager.h>
  
 class IJobService { 
 public: 
@@ -25,19 +26,20 @@ public:
  */
 class CommonJobServiceWrapper: public IJobService{
 protected:
+    DimDfPropP (ICacheDB, db);
+    DimDfPropP (IProxyFinderService, proxyFinder);
+
     NLogger log;
-    ICacheDB *db;
     Timer workTimer;
     vector<string> searchUrls;
     int consecutiveNoJobsFoundCount = 0;
-    IProxyFinderService *proxyFinder;
 
 
     void work();
     Error processJob(Job currJob);
     string unescapeHTML(const string& html);
     virtual string downloadPage(string url);
-    CommonJobServiceWrapper(ICacheDB *db, NLogger log, IProxyFinderService *proxyFinder, vector<string> searchUrls);
+    CommonJobServiceWrapper(string logName, vector<string> searchUrls);
     virtual tuple<Error, vector<Job>> findLastPublishedJobs();
     virtual tuple<Error, vector<Job> /*jobs*/> extractJobs(string html);
 

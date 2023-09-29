@@ -1,10 +1,8 @@
 #include "ijobservice.h"
  
-CommonJobServiceWrapper::CommonJobServiceWrapper(ICacheDB *db, NLogger log, IProxyFinderService *proxyFinder, vector<string> searchUrls){
-    this->db = db;
-    this->log = log;
+CommonJobServiceWrapper::CommonJobServiceWrapper(string logName, vector<string> searchUrls){
+    this->log =  DIM::defaultInstance().get<ILogger>()->getNamedLogger(logName),
     this->searchUrls = searchUrls;
-    this->proxyFinder = proxyFinder;
 
     //randomize timers interval to try prevent all services running at same time :D
     // auto interval = 3 Timer_minutes;
@@ -129,11 +127,11 @@ tuple<Error, vector<Job> /*jobs*/> CommonJobServiceWrapper::extractJobs(string h
 
 Error CommonJobServiceWrapper::processJob(Job currJob)
 {
-    if (!db->get("jobs."+currJob.jobId+".processed", false).getBool())
+    if (!db()->get("jobs."+currJob.jobId+".processed", false).getBool())
     {
         currJob = loadJobDetails(currJob).get();
 
-        db->set("jobs."+currJob.jobId+".processed", true);
+        db()->set("jobs."+currJob.jobId+".processed", true);
         jobsStream.stream(currJob);
 
     }
@@ -157,7 +155,7 @@ std::string CommonJobServiceWrapper::unescapeHTML(const std::string& html) {
 string CommonJobServiceWrapper::downloadPage(string url)
 {
     string tmpName = "/tmp/netEmpregos"+Utils::createUniqueId_customFormat("?????-?????")+".html";
-    auto proxy = proxyFinder->pickRandomProxy().get();
+    auto proxy = proxyFinder()->pickRandomProxy().get();
 
     string command = Utils::stringReplace(
         "curl -x \"{proxy}\" --connect-timeout 15 -sS \"{url}\" --output \"{output}\"",
@@ -216,7 +214,7 @@ string CommonJobServiceWrapper::helper_downloadUsingChrome(string url, function<
                         string("--run-all-compositor-stages-before-draw ") +
                         string("--disable-gpu ") +
                         string("--user-agent=\"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36\" ") +                        //string("--proxy-server=\"socks5://"+Utils::pickRandomProxy(true)+"\" ") +
-                        string("--proxy-server=\""+this->proxyFinder->pickRandomProxy().get().toString()+"\" ") +
+                        string("--proxy-server=\""+this->proxyFinder()->pickRandomProxy().get().toString()+"\" ") +
                         string("'"+url+"' ");
 
         log.debug("Download page with google-chrome (running the command "+cmd+")");

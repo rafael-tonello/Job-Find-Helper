@@ -8,6 +8,7 @@
 #include <icachedb.h>
 #include <ijobservice.h>
 #include <iproxyfinderservice.h>
+#include <dependencyInjectionManager.h>
 
 class NetEmpregosService: public CommonJobServiceWrapper { 
 protected:
@@ -20,7 +21,7 @@ protected:
     
 public: 
 
-    NetEmpregosService(ICacheDB *db, ILogger *logger, IProxyFinderService *proxyFinder, vector<string> searchUrls = {});
+    NetEmpregosService(vector<string> searchUrls = {});
     ~NetEmpregosService();
 };
 #endif 
